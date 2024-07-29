@@ -1,0 +1,28 @@
+*.pyc
+.~lock*
+.DS_Store
+.mypy_cache/
+*.egg-info/
+.tox/
+build/
+dist/
+examples/*.png
+pip-wheel-metadata/
+
+# coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+coverage-*.xml
+coverage-asyncio/
+coverage-twisted/
+
+# nodejs stuff
+node_modules/
+package-lock.json
+package.json
+
+# vscode
+.idea/
+launch.json
