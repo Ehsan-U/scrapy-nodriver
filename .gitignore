@@ -26,3 +26,4 @@ package.json
 # vscode
 .idea/
 launch.json
+test.py

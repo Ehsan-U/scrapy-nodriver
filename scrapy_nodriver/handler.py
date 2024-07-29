@@ -193,11 +193,10 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         
         start_time = time.time()
         headers = {}
-        def capture_headers(capt_request: uc.cdp.network.RequestWillBeSent):
+        def capture_headers(event: uc.cdp.network.RequestWillBeSent):
             nonlocal headers
-            capt_request = capt_request.request
-            if capt_request.url.strip("/") == request.url.strip("/"):
-                headers = dict(capt_request.headers)
+            if event.request.url.strip("/") == request.url.strip("/"):
+                headers = dict(event.request.headers)
         page.add_handler(uc.cdp.network.RequestWillBeSent, capture_headers)
 
         try:
@@ -217,8 +216,7 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         request.meta["download_latency"] = time.time() - start_time
 
         if not request.meta.get("nodriver_include_page"):
-            if not page.closed:
-                await page.close()
+            await page.close()
             self.stats.inc_value("nodriver/page_count/closed")
 
         body, encoding = _encode_body(headers=headers, text=body_str)
@@ -257,23 +255,22 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
                 await page.wait()
 
 
-    def _increment_request_stats(self, request: uc.cdp.network.RequestWillBeSent) -> None:
+    def _increment_request_stats(self, event: uc.cdp.network.RequestWillBeSent) -> None:
         stats_prefix = "nodriver/request_count"
         self.stats.inc_value(stats_prefix)
-        self.stats.inc_value(f"{stats_prefix}/resource_type/{request.type_.value}")
+        self.stats.inc_value(f"{stats_prefix}/resource_type/{event.type_.value}")
 
 
-    def _increment_response_stats(self, response: uc.cdp.network.ResponseReceived) -> None:
+    def _increment_response_stats(self, event: uc.cdp.network.ResponseReceived) -> None:
         stats_prefix = "nodriver/response_count"
         self.stats.inc_value(stats_prefix)
-        self.stats.inc_value(f"{stats_prefix}/resource_type/{response.type_.value}")
+        self.stats.inc_value(f"{stats_prefix}/resource_type/{event.type_.value}")
 
 
     @staticmethod
-    def _log_request(request: uc.cdp.network.RequestWillBeSent, spider: Spider) -> None:
-        request = request.request
-        log_args = [request.method.upper(), request.url, request.type_.value]
-        referrer = _get_header_value(request, "referer")
+    def _log_request(event: uc.cdp.network.RequestWillBeSent, spider: Spider) -> None:
+        log_args = [event.request.method.upper(), event.request.url, event.type_.value]
+        referrer = _get_header_value(event.request, "referer")
         if referrer:
             log_args.append(referrer)
             log_msg = "Request: <%s %s> (resource type: %s, referrer: %s)"
@@ -284,18 +281,17 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
             *log_args,
             extra={
                 "spider": spider,
-                "nodriver_request_url": request.url,
-                "nodriver_request_method": request.method.upper(),
-                "nodriver_resource_type": request.type_.value,
+                "nodriver_request_url": event.request.url,
+                "nodriver_request_method": event.request.method.upper(),
+                "nodriver_resource_type": event.type_.value,
             },
         )
 
 
     @staticmethod
-    def _log_response(response: uc.cdp.network.ResponseReceived, spider: Spider) -> None:
-        response = response.response
-        log_args = [response.status, response.url]
-        location = _get_header_value(response, "location")
+    def _log_response(event: uc.cdp.network.ResponseReceived, spider: Spider) -> None:
+        log_args = [event.response.status, event.response.url]
+        location = _get_header_value(event.response, "location")
         if location:
             log_args.append(location)
             log_msg = "Response: <%i %s> (location: %s)"
@@ -306,8 +302,8 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
             *log_args,
             extra={
                 "spider": spider,
-                "nodriver_response_url": response.url,
-                "nodriver_response_status": response.status,
+                "nodriver_response_url": event.response.url,
+                "nodriver_response_status": event.response.status,
             },
         )
 
