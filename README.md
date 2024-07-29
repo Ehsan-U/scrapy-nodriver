@@ -35,10 +35,6 @@ pip install scrapy-nodriver
 `nodriver` is defined as a dependency so it gets installed automatically,
 
 
-## Changelog
-
-See the [changelog](docs/changelog.md) document.
-
 
 ## Activation
 
@@ -86,12 +82,6 @@ class AwesomeSpider(scrapy.Spider):
     def start_requests(self):
         # GET request
         yield scrapy.Request("https://httpbin.org/get", meta={"nodriver": True})
-        # POST request
-        yield scrapy.FormRequest(
-            url="https://httpbin.org/post",
-            formdata={"foo": "bar"},
-            meta={"nodriver": True},
-        )
 
     def parse(self, response, **kwargs):
         # 'response' contains the page as seen by the browser
@@ -99,11 +89,21 @@ class AwesomeSpider(scrapy.Spider):
 ```
 
 
-settings.py
+### `NODRIVER_MAX_CONCURRENT_PAGES`
+Type `Optional[int]`, defaults to the value of Scrapy's `CONCURRENT_REQUESTS` setting
+
+Maximum amount of allowed concurrent Nodriver pages.
+
 ```python
-NODRIVER_HEADLESS = True  
-NODRIVER_MAX_CONCURRENT_PAGES = 8  # defaults to the value of Scrapy's CONCURRENT_REQUESTS setting
-# block images
+NODRIVER_MAX_CONCURRENT_PAGES = 8
+```
+
+### `NODRIVER_BLOCKED_URLS`
+Type `Optional[List]`, default `None`
+
+Block resources on the page.
+
+```python
 NODRIVER_BLOCKED_URLS = [
     */*.jpg",
     */*.png",
@@ -114,11 +114,12 @@ NODRIVER_BLOCKED_URLS = [
 ]
 ```
 
+### `NODRIVER_HEADLESS`
+Type `Optional[bool]`, default `True`
 
-### General note about settings
-For settings that accept object paths as strings, passing callable objects is
-only supported when using Scrapy>=2.4. With prior versions, only strings are
-supported.
+```python
+NODRIVER_HEADLESS = True
+```
 
 
 
@@ -246,7 +247,7 @@ class AwesomeSpiderWithPage(scrapy.Spider):
 
 ## Executing actions on pages
 
-A sorted iterable (e.g. `list`, `tuple`, `dict`) of `PageMethod` objects
+A sorted iterable (e.g. `list`, `tuple`) of `PageMethod` objects
 could be passed in the `nodriver_page_methods`
 [Request.meta](https://docs.scrapy.org/en/latest/topics/request-response.html#scrapy.http.Request.meta)
 key to request methods to be invoked on the `Page` object before returning the final
