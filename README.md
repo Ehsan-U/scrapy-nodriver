@@ -98,20 +98,28 @@ class AwesomeSpider(scrapy.Spider):
         return {"url": response.url}
 ```
 
-### Notes about the User-Agent header
 
-By default, outgoing requests include the `User-Agent` set by Scrapy (either with the
-`USER_AGENT` or `DEFAULT_REQUEST_HEADERS` settings or via the `Request.headers` attribute).
-This could cause some sites to react in unexpected ways, for instance if the user agent
-does not match the running Browser. If you prefer the `User-Agent` sent by
-default by the specific browser you're using, set the Scrapy user agent to `None`.
-
+settings.py
+```python
+NODRIVER_HEADLESS = True  
+NODRIVER_MAX_CONCURRENT_PAGES = 8  # defaults to the value of Scrapy's CONCURRENT_REQUESTS setting
+# block images
+NODRIVER_BLOCKED_URLS = [
+    */*.jpg",
+    */*.png",
+    */*.gif",
+    */*.webp",
+    */*.svg",
+    */*.ico"
+]
+```
 
 
 ### General note about settings
 For settings that accept object paths as strings, passing callable objects is
 only supported when using Scrapy>=2.4. With prior versions, only strings are
 supported.
+
 
 
 ## Supported [`Request.meta`](https://docs.scrapy.org/en/latest/topics/request-response.html#scrapy.http.Request.meta) keys
