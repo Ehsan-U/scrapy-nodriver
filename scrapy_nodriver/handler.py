@@ -1,4 +1,5 @@
 import asyncio
+import fnmatch
 import logging
 import time
 from functools import partial
@@ -267,8 +268,7 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         self.stats.inc_value(f"{stats_prefix}/resource_type/{event.type_.value}")
 
 
-    @staticmethod
-    def _log_request(event: uc.cdp.network.RequestWillBeSent, spider: Spider) -> None:
+    def _log_request(self, event: uc.cdp.network.RequestWillBeSent, spider: Spider) -> None:
         log_args = [event.request.method.upper(), event.request.url, event.type_.value]
         referrer = _get_header_value(event.request, "referer")
         if referrer:
@@ -288,24 +288,35 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         )
 
 
-    @staticmethod
-    def _log_response(event: uc.cdp.network.ResponseReceived, spider: Spider) -> None:
-        log_args = [event.response.status, event.response.url]
-        location = _get_header_value(event.response, "location")
-        if location:
-            log_args.append(location)
-            log_msg = "Response: <%i %s> (location: %s)"
+    def _log_response(self, event: uc.cdp.network.ResponseReceived, spider: Spider) -> None:
+        if not any(fnmatch.fnmatch(event.response.url, pattern) for pattern in self.config.blocked_urls):
+            log_args = [event.response.status, event.response.url]
+            location = _get_header_value(event.response, "location")
+            if location:
+                log_args.append(location)
+                log_msg = "Response: <%i %s> (location: %s)"
+            else:
+                log_msg = "Response: <%i %s>"
+            logger.debug(
+                log_msg,
+                *log_args,
+                extra={
+                    "spider": spider,
+                    "nodriver_response_url": event.response.url,
+                    "nodriver_response_status": event.response.status,
+                },
+            )
         else:
-            log_msg = "Response: <%i %s>"
-        logger.debug(
-            log_msg,
-            *log_args,
-            extra={
-                "spider": spider,
-                "nodriver_response_url": event.response.url,
-                "nodriver_response_status": event.response.status,
-            },
-        )
+            logger.debug(
+                "Aborted Nodriver request <%s %s>",
+                "GET",
+                event.response.url,
+                extra={
+                    "spider": spider,
+                    "nodriver_request_url": event.response.url,
+                    "nodriver_request_method": "GET",
+                },
+            )
 
 
     def _log_blocked_request(self, event: uc.cdp.network.LoadingFailed) -> None:
