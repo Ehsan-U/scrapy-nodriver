@@ -4,10 +4,16 @@
 
 
 A [Scrapy](https://github.com/scrapy/scrapy) Download Handler which performs requests using
-[Nodriver for Python](https://github.com/ultrafunkamsterdam/nodriver).
+[Nodriver](https://github.com/ultrafunkamsterdam/nodriver).
 It can be used to handle pages that require JavaScript (among other things),
 while adhering to the regular Scrapy workflow (i.e. without interfering
 with request scheduling, item processing, etc).
+
+* **No more webdriver, selenium, playwright**
+
+What makes this package different from package like [Scrapy-Playwright](https://github.com/scrapy-plugins/scrapy-playwright), is the optimization to stay undetected for most anti-bot solutions.
+[CDP](https://chromedevtools.github.io/devtools-protocol/) communication provides even better resistance against web applicatinon firewalls (WAF’s), while performance gets a massive boost.
+
 
 
 ## Requirements
