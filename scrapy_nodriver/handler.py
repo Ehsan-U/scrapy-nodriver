@@ -212,7 +212,11 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
                     "scrapy_request_method": request.method,
                 },
             )
-        await self._apply_page_methods(page, request, spider)
+        try:
+            await self._apply_page_methods(page, request, spider)
+        except Exception as ex:
+            await page.aopen()  # temporary patch for websocket closed issue when page_method failed
+            raise
         body_str = await page.get_content()
         request.meta["download_latency"] = time.time() - start_time
 
