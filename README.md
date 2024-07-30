@@ -105,12 +105,12 @@ Block resources on the page.
 
 ```python
 NODRIVER_BLOCKED_URLS = [
-    */*.jpg",
-    */*.png",
-    */*.gif",
-    */*.webp",
-    */*.svg",
-    */*.ico"
+    "*/*.jpg",
+    "*/*.png",
+    "*/*.gif",
+    "*/*.webp",
+    "*/*.svg",
+    "*/*.ico"
 ]
 ```
 
