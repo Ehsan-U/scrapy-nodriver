@@ -108,15 +108,15 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         )
         self._set_max_concurrent_page_count()
 
+        if self.config.blocked_urls:
+            await page.send(uc.cdp.network.enable())
+            await page.send(uc.cdp.network.set_blocked_ur_ls(self.config.blocked_urls))
+
         page.add_handler(uc.cdp.network.RequestWillBeSent, self._increment_request_stats)
         page.add_handler(uc.cdp.network.ResponseReceived, self._increment_response_stats)
         page.add_handler(uc.cdp.network.RequestWillBeSent, partial(self._log_request, spider=spider))
         page.add_handler(uc.cdp.network.ResponseReceived, partial(self._log_response, spider=spider))
         page.add_handler(uc.cdp.network.LoadingFailed, partial(self._log_blocked_request))
-        
-        if self.config.blocked_urls:
-            await page.send(uc.cdp.network.enable())
-            await page.send(uc.cdp.network.set_blocked_ur_ls(self.config.blocked_urls))
 
         page.on("close", self._close_page_callback)
         return page
