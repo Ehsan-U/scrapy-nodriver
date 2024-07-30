@@ -208,7 +208,7 @@ class AwesomeSpiderWithPage(scrapy.Spider):
         )
 
     def parse_first(self, response):
-        page: Page = response.meta["nodriver_page"]
+        page: Tab = response.meta["nodriver_page"]
         return scrapy.Request(
             url="https://example.com",
             callback=self.parse_second,
@@ -217,13 +217,13 @@ class AwesomeSpiderWithPage(scrapy.Spider):
         )
 
     async def parse_second(self, response):
-        page: Page = response.meta["nodriver_page"]
+        page: Tab = response.meta["nodriver_page"]
         title = await page.title()  # "Example Domain"
         await page.close()
         return {"title": title}
 
     async def errback_close_page(self, failure):
-        page: Page = failure.request.meta["nodriver_page"]
+        page: Tab = failure.request.meta["nodriver_page"]
         await page.close()
 ```
 
