@@ -40,7 +40,6 @@ class Config:
     max_concurrent_pages: int
     headless: bool
     blocked_urls: List
-    target_closed_max_retries: int = 3
 
 
     @classmethod
@@ -109,10 +108,6 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         )
         self._set_max_concurrent_page_count()
 
-        if self.config.blocked_urls:
-            await page.send(uc.cdp.network.enable())
-            await page.send(uc.cdp.network.set_blocked_ur_ls(self.config.blocked_urls))
-
         page.add_handler(uc.cdp.network.RequestWillBeSent, self._increment_request_stats)
         page.add_handler(uc.cdp.network.ResponseReceived, self._increment_response_stats)
         page.add_handler(uc.cdp.network.RequestWillBeSent, partial(self._log_request, spider=spider))
@@ -141,27 +136,6 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
     
 
     async def _download_request(self, request: Request, spider: Spider) -> Response:
-        counter = 0
-        while True:
-            try:
-                return await self._download_request_with_retry(request=request, spider=spider)
-            except Exception as ex:
-                counter += 1
-                if counter > self.config.target_closed_max_retries:
-                    raise ex
-                logger.debug(
-                    "Target closed, retrying to create page for %s",
-                    request,
-                    extra={
-                        "spider": spider,
-                        "scrapy_request_url": request.url,
-                        "scrapy_request_method": request.method,
-                        "exception": ex,
-                    },
-                )
-
-    
-    async def _download_request_with_retry(self, request: Request, spider: Spider) -> Response:
         page: Tab = request.meta.get("nodriver_page")
         if not isinstance(page, Tab) or page.closed:
             page = await self._create_page(request=request, spider=spider)
@@ -199,6 +173,10 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
             if event.request.url.strip("/") == request.url.strip("/"):
                 headers = dict(event.request.headers)
         page.add_handler(uc.cdp.network.RequestWillBeSent, capture_headers)
+
+        if self.config.blocked_urls:
+            await page.send(uc.cdp.network.enable())
+            await page.send(uc.cdp.network.set_blocked_ur_ls(self.config.blocked_urls))
 
         try:
             await page.get(request.url)
