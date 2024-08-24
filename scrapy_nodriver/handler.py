@@ -305,8 +305,9 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
 
 
     def _log_blocked_request(self, event: uc.cdp.network.LoadingFailed) -> None:
-        if event.blocked_reason.value == "inspector":
-            self.stats.inc_value("nodriver/request_count/aborted")
+        if event.blocked_reason:
+            if event.blocked_reason.value == "inspector":
+                self.stats.inc_value("nodriver/request_count/aborted")
 
 
     def _close_page_callback(self) -> None:
