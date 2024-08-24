@@ -1,6 +1,5 @@
 import setuptools
 
-from scrapy_nodriver import __version__
 
 
 with open("README.md", "r", encoding="utf-8") as fh:
@@ -9,7 +8,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="scrapy-nodriver",
-    version=__version__,
+    version="0.0.6",
     license="BSD",
     description="Nodriver integration for Scrapy",
     long_description=long_description,
