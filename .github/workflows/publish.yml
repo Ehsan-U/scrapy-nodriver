@@ -23,14 +23,27 @@ jobs:
 
       - name: Get release version
         id: get_version
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        run: |
+          RELEASE_VERSION=${GITHUB_REF#refs/tags/v}
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "Release version: $RELEASE_VERSION"
+
+      - name: Debug - Check __version__
+        run: |
+          echo "Content of scrapy_nodriver/__init__.py:"
+          cat scrapy_nodriver/__init__.py
+          echo "Python import of __version__:"
+          python -c "from scrapy_nodriver import __version__; print(__version__)"
 
       - name: Set package version
         run: |
           echo "PACKAGE_VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }}" >> $GITHUB_ENV
+          echo "Package version set to: ${{ steps.get_version.outputs.RELEASE_VERSION }}"
 
       - name: Verify setup.py version
         run: |
+          echo "Content of setup.py:"
+          cat setup.py
           SETUP_VERSION=$(PACKAGE_VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} python setup.py --version)
           echo "Version from setup.py: $SETUP_VERSION"
           echo "GitHub release version: ${{ steps.get_version.outputs.RELEASE_VERSION }}"
@@ -42,6 +55,8 @@ jobs:
       - name: Build package
         run: |
           python setup.py sdist bdist_wheel
+          echo "Contents of dist directory:"
+          ls -l dist/
 
       - name: Verify package version
         run: |
@@ -59,4 +74,4 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          twine upload dist/*
+          twine upload --verbose dist/*
