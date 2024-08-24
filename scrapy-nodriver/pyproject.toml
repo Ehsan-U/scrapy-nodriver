@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "scrapy-nodriver"
+version = "0.0.5"
+description = "Nodriver integration for Scrapy"
+authors = ["Ehsan U. <lancerf562@gmail.com>"]
+license = "BSD"
+readme = "README.md"
+homepage = "https://github.com/Ehsan-U/scrapy-nodriver"
+packages = [{include = "scrapy_nodriver"}]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Scrapy",
+    "Intended Audience :: Developers",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.8"
+scrapy = ">=2.0,!=2.4.0"
+nodriver-extras = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

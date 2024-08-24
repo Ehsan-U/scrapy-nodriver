@@ -17,7 +17,7 @@ from scrapy.http import Request, Response
 from nodriver import Tab
 from scrapy.responsetypes import responsetypes
 
-from scrapy_nodriver._utils import (
+from scrapy_nodriver_._utils import (
     _encode_body,
     _get_header_value,
     _maybe_await,
