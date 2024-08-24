@@ -23,15 +23,36 @@ jobs:
 
       - name: Get release version
         id: get_version
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
-      - name: Update version in setup.py
+      - name: Set package version
         run: |
-          sed -i "s/version=.*,/version='${{ steps.get_version.outputs.RELEASE_VERSION }}',/" setup.py
+          echo "PACKAGE_VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }}" >> $GITHUB_ENV
+
+      - name: Verify setup.py version
+        run: |
+          SETUP_VERSION=$(PACKAGE_VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} python setup.py --version)
+          echo "Version from setup.py: $SETUP_VERSION"
+          echo "GitHub release version: ${{ steps.get_version.outputs.RELEASE_VERSION }}"
+          if [ "$SETUP_VERSION" != "${{ steps.get_version.outputs.RELEASE_VERSION }}" ]; then
+            echo "Version mismatch! setup.py version does not match GitHub release version."
+            exit 1
+          fi
 
       - name: Build package
         run: |
           python setup.py sdist bdist_wheel
+
+      - name: Verify package version
+        run: |
+          WHEEL_FILENAME=$(ls dist/*.whl)
+          WHEEL_VERSION=$(echo $WHEEL_FILENAME | sed -n 's/.*-\(.*\)-py3.*/\1/p')
+          echo "Wheel filename: $WHEEL_FILENAME"
+          echo "Extracted version: $WHEEL_VERSION"
+          if [ "$WHEEL_VERSION" != "${{ steps.get_version.outputs.RELEASE_VERSION }}" ]; then
+            echo "Version mismatch! Wheel version does not match GitHub release version."
+            exit 1
+          fi
 
       - name: Publish to PyPI
         env:
