@@ -111,7 +111,7 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         page.add_handler(uc.cdp.network.RequestWillBeSent, self._increment_request_stats)
         page.add_handler(uc.cdp.network.ResponseReceived, self._increment_response_stats)
         page.add_handler(uc.cdp.network.RequestWillBeSent, partial(self._log_request, spider=spider))
-        page.add_handler(uc.cdp.network.ResponseReceived, partial(self._log_response, spider=spider))
+        page.add_handler(uc.cdp.network.ResponseReceived, partial(self._log_response, spider=spider, request=request))
         page.add_handler(uc.cdp.network.LoadingFailed, partial(self._log_blocked_request))
 
         page.on("close", self._close_page_callback)
@@ -131,6 +131,7 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
     
     def download_request(self, request: Request, spider: Spider) -> Deferred:
         if request.meta.get("nodriver"):
+            self.resp_status = 200 # default
             return deferred_from_coro(self._download_request(request, spider))
         return super().download_request(request, spider)
     
@@ -179,7 +180,7 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
             await page.send(uc.cdp.network.set_blocked_ur_ls(self.config.blocked_urls))
 
         try:
-            await page.get(request.url)
+            t = await page.get(request.url)
         except Exception as ex:
             logger.debug(
                 "Navigating to %s failed",
@@ -206,7 +207,7 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         respcls = responsetypes.from_args(headers=headers, url=request.url, body=body)
         return respcls(
             url=request.url,
-            status=200,
+            status=self.resp_status,
             headers=headers,
             body=body,
             request=request,
@@ -270,7 +271,7 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
         )
 
 
-    def _log_response(self, event: uc.cdp.network.ResponseReceived, spider: Spider) -> None:
+    def _log_response(self, event: uc.cdp.network.ResponseReceived, spider: Spider, request: Response) -> None:
         if not any(fnmatch.fnmatch(event.response.url, pattern) for pattern in self.config.blocked_urls):
             log_args = [event.response.status, event.response.url]
             location = _get_header_value(event.response, "location")
@@ -288,6 +289,8 @@ class ScrapyNodriverDownloadHandler(HTTPDownloadHandler):
                     "nodriver_response_status": event.response.status,
                 },
             )
+            if request.url.strip("/") == event.response.url.strip("/"):
+                self.resp_status = event.response.status
         else:
             logger.debug(
                 "Aborted Nodriver request <%s %s>",
