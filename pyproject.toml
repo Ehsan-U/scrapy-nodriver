@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "scrapy-nodriver"
-version = "0.0.5"
+version = "0.0.6"
 description = "Nodriver integration for Scrapy"
 authors = ["Ehsan U. <lancerf562@gmail.com>"]
 license = "BSD"
