@@ -27,3 +27,6 @@ package.json
 .idea/
 launch.json
 test.py
+
+# poetry 
+dist/
