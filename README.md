@@ -20,8 +20,8 @@ What makes this package different from package like [Scrapy-Playwright](https://
 After the release of [version 2.0](https://docs.scrapy.org/en/latest/news.html#scrapy-2-0-0-2020-03-03),
 which includes [coroutine syntax support](https://docs.scrapy.org/en/2.0/topics/coroutines.html)
 and [asyncio support](https://docs.scrapy.org/en/2.0/topics/asyncio.html), Scrapy allows
-to integrate `asyncio`-based projects such as `Nodriver`.
-
+to integrate `asyncio`-based projects such as `Nodriver`.<br>
+Note: Chrome must be installed on the system.
 
 ### Minimum required versions
 
